@@ -25,6 +25,7 @@ class SyncWorker(base.Worker):
 
     def accept(self, listener):
         client, addr = listener.accept()
+        self.log.debug('accepted %s %s', client, addr)
         client.setblocking(1)
         util.close_on_exec(client)
         self.handle(listener, client, addr)

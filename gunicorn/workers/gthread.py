@@ -130,14 +130,16 @@ class ThreadWorker(base.Worker):
     def accept(self, server, listener):
         try:
             sock, client = listener.accept()
+            self.log.debug('accepted <%s: %s %s>', type(listener), sock, client)
             # initialize the connection object
             conn = TConn(self.cfg, sock, client, server)
             self.nr_conns += 1
             # enqueue the job
             self.enqueue_req(conn)
         except EnvironmentError as e:
+            self.log.debug('discarded <%s>', listener)
             if e.errno not in (errno.EAGAIN,
-                    errno.ECONNABORTED, errno.EWOULDBLOCK):
+                               errno.ECONNABORTED, errno.EWOULDBLOCK):
                 raise
 
     def reuse_connection(self, conn, client):
@@ -205,6 +207,7 @@ class ThreadWorker(base.Worker):
             self.notify()
 
             # can we accept more connections?
+            self.log.debug('nr_conns: %s', self.nr_conns)
             if self.nr_conns < self.worker_connections:
                 # wait for an event
                 events = self.poller.select(1.0)
